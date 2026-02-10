@@ -162,21 +162,34 @@ app.post('/scrape', async (req, res) => {
         };
       });
     });
-    const filePath = 'scraped-data.xlsx';
+
+    // Use a temp directory for file writing (important for cloud platforms like Render.com)
+    const os = require('os');
+    const tempDir = os.tmpdir();
+    const filePath = require('path').join(tempDir, 'scraped-data.xlsx');
     await workbook.xlsx.writeFile(filePath);
+    // Store the last file path in memory for download endpoint
+    app.locals.lastExcelFile = filePath;
     res.json({
       success: true,
       count: results.length,
       download: '/download'
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to scrape data' });
+    console.error('Scrape error:', err.message, err.stack);
+    res.status(500).json({ error: 'Failed to scrape data', details: err.message });
   }
 });
 
 app.get('/download', (req, res) => {
-  res.download('scraped-data.xlsx');
+  const file = app.locals.lastExcelFile;
+  if (!file) return res.status(400).send('No file available for download. Please scrape first.');
+  res.download(file, 'scraped-data.xlsx', err => {
+    if (err) {
+      console.error('Download error:', err.message, err.stack);
+      res.status(500).send('Failed to download file');
+    }
+  });
 });
 
 app.listen(3100, () => {
