@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Data Export Tool</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #f4f6f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .card {
+      background: white;
+      padding: 30px;
+      width: 400px;
+      box-shadow: 0 10px 25px rgba(0,0,0,.1);
+      border-radius: 10px;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+    }
+    button {
+      margin-top: 15px;
+      width: 100%;
+      padding: 12px;
+      background: #1976d2;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .success {
+      margin-top: 15px;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+    <div class="card">
+  <h2>Website Data Export</h2>
+  <p>Enter a website URL (allowed/public)</p>
+  <input id="url" placeholder="https://example.com" />
+  <button onclick="scrape()">Scrape & Download Excel</button>
+  <div class="success" id="msg"></div>
+</div>
+
+
+<script>
+  async function scrape() {
+    const url = document.getElementById('url').value;
+    const res = await fetch('/scrape', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      document.getElementById('msg').innerHTML =
+        `Data scraped (${data.count} rows). <a href="/download">Download Excel</a>`;
+    }
+  }
+</script>
+    
+</body>
+</html>
